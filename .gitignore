@@ -1,0 +1,21 @@
+# Flutter
+web_ppdb/.dart_tool/
+web_ppdb/build/
+web_ppdb/.flutter-plugins
+web_ppdb/.flutter-plugins-dependencies
+
+# Node.js
+backend/node_modules/
+
+# Environment
+.env
+.env.*
+backend/.env
+backend/.env.*
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
