@@ -27,8 +27,7 @@ const routes = {
 
 for (const [name, route] of Object.entries(routes)) {
     if (typeof route !== 'function') {
-        console.error(`ERROR: ${name} bukan router/function!`);
-        process.exit(1);
+        throw new Error(`ERROR: ${name} bukan router/function!`);
     }
 
     console.log(`${name}: berhasil dimuat`);
@@ -73,12 +72,17 @@ app.use((req, res) => {
     });
 });
 
-// Jalankan Server
-const PORT = process.env.PORT || 3000;
+// Export aplikasi untuk Vercel
+module.exports = app;
 
-app.listen(PORT, () => {
-    console.log('================================');
-    console.log('   BACKEND PPDB BERHASIL JALAN');
-    console.log(`   http://localhost:${PORT}`);
-    console.log('================================');
-});
+// Jalankan server hanya ketika dijalankan secara lokal
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+
+    app.listen(PORT, () => {
+        console.log('================================');
+        console.log('   BACKEND PPDB BERHASIL JALAN');
+        console.log(`   http://localhost:${PORT}`);
+        console.log('================================');
+    });
+}
