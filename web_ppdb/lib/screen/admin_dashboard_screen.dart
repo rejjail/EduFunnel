@@ -19,7 +19,7 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  final String baseUrl = 'http://localhost:3000';
+  final String baseUrl = 'https://edu-funnel-eight.vercel.app';
 
   int selectedMenu = 0;
   bool isLoading = true;

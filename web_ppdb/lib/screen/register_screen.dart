@@ -22,7 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isLoading = false;
 
   // Alamat backend Node.js
-  final String baseUrl = 'http://localhost:3000';
+  final String baseUrl = 'https://edu-funnel-eight.vercel.app';
 
   // ==========================================
   // FUNGSI REGISTRASI

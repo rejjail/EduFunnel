@@ -21,7 +21,7 @@ class SiswaDashboardScreen extends StatefulWidget {
 class _SiswaDashboardScreenState extends State<SiswaDashboardScreen> {
   static const Color primary = Color(0xFF2463A6);
 
-  final String baseUrl = 'http://localhost:3000';
+  final String baseUrl = 'https://edu-funnel-eight.vercel.app';
 
   int selectedMenu = 0;
   bool loading = true;

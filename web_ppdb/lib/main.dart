@@ -42,8 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showPassword = false;
   bool isLoading = false;
 
-  final String baseUrl = 'http://localhost:3000';
-
+  final String baseUrl = 'https://edu-funnel-eight.vercel.app';
   Future<void> login() async {
     if (!formKey.currentState!.validate()) return;
 
