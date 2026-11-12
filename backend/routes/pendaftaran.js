@@ -16,10 +16,10 @@ router.post('/', async (req, res) => {
         jenis_kelamin,
         alamat,
         asal_sekolah,
-        sumber_informasi,
+        sumber_informasi
     } = req.body;
 
-    // Validasi data wajib
+    // Validasi data
     if (
         !nisn ||
         !tempat_lahir ||
@@ -33,7 +33,6 @@ router.post('/', async (req, res) => {
         });
     }
 
-    // Validasi jenis kelamin
     if (!['Laki-laki', 'Perempuan'].includes(jenis_kelamin)) {
         return res.status(400).json({
             message: 'Jenis kelamin tidak valid.'
@@ -41,13 +40,6 @@ router.post('/', async (req, res) => {
     }
 
     try {
-        // Pastikan user ID tersedia
-        if (!req.user || !req.user.id) {
-            return res.status(401).json({
-                message: 'Identitas pengguna tidak ditemukan. Silakan login kembali.'
-            });
-        }
-
         // Cek apakah user sudah pernah mendaftar
         const [existingUser] = await db.promise().query(
             'SELECT id FROM pendaftaran WHERE user_id = ?',
@@ -60,9 +52,17 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Simpan data pendaftaran
-        const sql = `
-            INSERT INTO pendaftaran (
+        // Cek ID terakhir dan buat ID berikutnya
+        const [lastId] = await db.promise().query(
+            'SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM pendaftaran'
+        );
+
+        const newId = lastId[0].next_id;
+
+        // Simpan pendaftaran
+        const [result] = await db.promise().query(
+            `INSERT INTO pendaftaran (
+                id,
                 user_id,
                 nisn,
                 tempat_lahir,
@@ -71,62 +71,50 @@ router.post('/', async (req, res) => {
                 alamat,
                 asal_sekolah,
                 sumber_informasi
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        const values = [
-            req.user.id,
-            nisn,
-            tempat_lahir,
-            tanggal_lahir,
-            jenis_kelamin,
-            alamat,
-            asal_sekolah,
-            sumber_informasi || 'Lainnya'
-        ];
-
-        const [result] = await db.promise().query(sql, values);
-
-        console.log('PENDAFTARAN BERHASIL:', {
-            user_id: req.user.id,
-            id_pendaftaran: result.insertId
-        });
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                newId,
+                req.user.id,
+                nisn,
+                tempat_lahir,
+                tanggal_lahir,
+                jenis_kelamin,
+                alamat,
+                asal_sekolah,
+                sumber_informasi || 'Lainnya'
+            ]
+        );
 
         return res.status(201).json({
             message: 'Pendaftaran berhasil dikirim.',
-            id_pendaftaran: result.insertId
+            id_pendaftaran: result.insertId || newId
         });
 
     } catch (error) {
-        // Catat error asli di Vercel Runtime Logs
         console.error('ERROR PENDAFTARAN:', {
             message: error.message,
             code: error.code,
-            sqlMessage: error.sqlMessage,
-            user_id: req.user?.id
+            user_id: req.user.id
         });
 
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({
-                message: 'NISN atau data pendaftaran sudah digunakan.',
-                error: error.message
+                message: 'NISN atau data pendaftaran sudah digunakan.'
             });
         }
 
         return res.status(500).json({
             message: 'Gagal menyimpan pendaftaran.',
-            error: error.message,
-            code: error.code || 'UNKNOWN_ERROR'
+            error: error.message
         });
     }
 });
 
-// 2. Melihat status pendaftaran milik user yang login
+// 2. Melihat status pendaftaran
 router.get('/status', async (req, res) => {
     try {
-        const sql = `
-            SELECT
+        const [results] = await db.promise().query(
+            `SELECT
                 id,
                 nisn,
                 tempat_lahir,
@@ -137,10 +125,9 @@ router.get('/status', async (req, res) => {
                 status,
                 created_at
             FROM pendaftaran
-            WHERE user_id = ?
-        `;
-
-        const [results] = await db.promise().query(sql, [req.user.id]);
+            WHERE user_id = ?`,
+            [req.user.id]
+        );
 
         if (results.length === 0) {
             return res.status(404).json({
@@ -154,12 +141,7 @@ router.get('/status', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('ERROR STATUS PENDAFTARAN:', {
-            message: error.message,
-            code: error.code,
-            sqlMessage: error.sqlMessage,
-            user_id: req.user?.id
-        });
+        console.error('ERROR STATUS PENDAFTARAN:', error.message);
 
         return res.status(500).json({
             message: 'Gagal mengambil status pendaftaran.',
