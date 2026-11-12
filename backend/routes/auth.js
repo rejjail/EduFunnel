@@ -53,35 +53,51 @@ router.post('/register', async (req, res) => {
                     // Hash password
                     const hashedPassword = await bcrypt.hash(password, 10);
 
-                    // Simpan user
-                    db.query(
-                        `INSERT INTO users (nama, email, password, role)
-                         VALUES (?, ?, ?, 'user')`,
-                        [namaBersih, emailBersih, hashedPassword],
-                        (err, result) => {
+                    // Ambil ID berikutnya
+db.query(
+    'SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM users',
+    (err, rows) => {
+        if (err) {
+            console.error('ERROR GENERATE ID:', err);
 
-                            if (err) {
-                                console.error('ERROR INSERT REGISTRASI:', err);
+            return res.status(500).json({
+                message: 'Gagal membuat ID pengguna',
+                error: err.message
+            });
+        }
 
-                                return res.status(500).json({
-                                    message: 'Registrasi gagal',
-                                    error: err.message
-                                });
-                            }
+        const nextId = rows[0].nextId;
 
-                            console.log('REGISTRASI BERHASIL:', emailBersih);
+        // Simpan user dengan ID
+        db.query(
+            `INSERT INTO users (id, nama, email, password, role)
+             VALUES (?, ?, ?, ?, 'user')`,
+            [nextId, namaBersih, emailBersih, hashedPassword],
+            (err, result) => {
+                if (err) {
+                    console.error('ERROR INSERT REGISTRASI:', err);
 
-                            return res.status(201).json({
-                                message: 'Registrasi berhasil',
-                                user: {
-                                    id: result.insertId,
-                                    nama: namaBersih,
-                                    email: emailBersih,
-                                    role: 'user'
-                                }
-                            });
-                        }
-                    );
+                    return res.status(500).json({
+                        message: 'Registrasi gagal',
+                        error: err.message
+                    });
+                }
+
+                console.log('REGISTRASI BERHASIL:', emailBersih);
+
+                return res.status(201).json({
+                    message: 'Registrasi berhasil',
+                    user: {
+                        id: nextId,
+                        nama: namaBersih,
+                        email: emailBersih,
+                        role: 'user'
+                    }
+                });
+            }
+        );
+    }
+);
 
                 } catch (error) {
                     console.error('ERROR HASH PASSWORD:', error);
