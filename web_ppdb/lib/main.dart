@@ -16,7 +16,7 @@ class PPDBApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'PPDB SMPIT Nururrahman',
+      title: 'EduFunnel Admin',
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'Roboto',
@@ -43,6 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
 
   final String baseUrl = 'https://edu-funnel-eight.vercel.app';
+
   Future<void> login() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -72,13 +73,24 @@ class _LoginScreenState extends State<LoginScreen> {
           throw Exception('Data pengguna atau token tidak ditemukan.');
         }
 
-        final nama = user['nama']?.toString() ?? 'Pengguna';
+        final nama = user['nama']?.toString() ?? 'Admin';
         final role = user['role']?.toString().toLowerCase().trim() ?? '';
 
-        if (role != 'admin' && role != 'user') {
-          throw Exception('Role pengguna tidak dikenali.');
+        // WEBSITE 1 KHUSUS ADMIN
+        if (role != 'admin') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Akun siswa silakan login melalui Website PPDB SMPIT Nururrahman.',
+              ),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 4),
+            ),
+          );
+          return;
         }
 
+        // LOGIN ADMIN BERHASIL
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -181,26 +193,6 @@ class _LoginScreenState extends State<LoginScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.person_outline, color: Color(0xFF2463A6), size: 23),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Login Siswa / User\n'
-                  'Gunakan email dan password yang sudah didaftarkan '
-                  'melalui menu Daftar Akun Baru.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF475569),
-                    height: 1.5,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 13),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
               Icon(
                 Icons.admin_panel_settings_outlined,
                 color: Colors.orange,
@@ -209,9 +201,9 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Login Admin\n'
-                  'Gunakan akun administrator yang sudah disediakan. '
-                  'Admin tidak perlu melakukan registrasi.',
+                  'Login Administrator\n'
+                  'Gunakan email dan password akun administrator '
+                  'yang sudah disediakan.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Color(0xFF475569),
@@ -223,8 +215,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           SizedBox(height: 12),
           Text(
-            'Sistem akan mengarahkan pengguna secara otomatis '
-            'ke dashboard sesuai hak akses akun.',
+            'Website ini khusus digunakan oleh administrator '
+            'untuk memantau aktivitas dan analitik PPDB.',
             style: TextStyle(
               fontSize: 11,
               color: Color(0xFF64748B),
@@ -264,13 +256,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Icon(
-                    Icons.school_rounded,
+                    Icons.admin_panel_settings_rounded,
                     size: 65,
                     color: Color(0xFF2463A6),
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'PPDB ONLINE',
+                    'EDUFUNNEL',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 25,
@@ -279,13 +271,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const Text(
-                    'SMPIT Nururrahman',
+                    'Admin Dashboard PPDB SMPIT Nururrahman',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 25),
 
-                  // INFORMASI LOGIN USER DAN ADMIN
                   informationCard(),
 
                   const SizedBox(height: 25),
@@ -296,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: inputDecoration(
-                      'Masukkan email',
+                      'Masukkan email administrator',
                       Icons.email_outlined,
                     ),
                     validator: (value) {
@@ -306,6 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
+
                   const SizedBox(height: 20),
 
                   const Text('Password'),
@@ -337,6 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
+
                   const SizedBox(height: 25),
 
                   SizedBox(
@@ -353,7 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.white,
                               )
                               : const Text(
-                                'LOGIN SEKARANG',
+                                'LOGIN ADMIN',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                     ),
@@ -364,14 +357,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 10),
 
                   const Text(
-                    'Belum memiliki akun?',
+                    'Portal pendaftaran calon siswa tersedia di:',
                     textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
 
                   TextButton(
-                    onPressed: isLoading ? null : openRegister,
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Silakan buka Website PPDB SMPIT Nururrahman.',
+                          ),
+                        ),
+                      );
+                    },
                     child: const Text(
-                      'Daftar Akun Baru',
+                      'Website PPDB Siswa',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF2463A6),
