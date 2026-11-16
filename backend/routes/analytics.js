@@ -147,7 +147,17 @@ router.get('/channels', async (req, res) => {
 
 router.get('/funnel', async (req, res) => {
     try {
-        const [results] = await db.promise().query(`
+        // Menghitung jumlah pengunjung unik dari Website 2
+        const [visitorResults] = await db.promise().query(`
+            SELECT COUNT(DISTINCT session_id) AS pengunjung
+            FROM analytics_events
+            WHERE event_name = 'page_view'
+              AND source = 'Website PPDB SMPIT Nururrahman'
+              AND session_id IS NOT NULL
+        `);
+
+        // Menghitung data pendaftaran
+        const [registrationResults] = await db.promise().query(`
             SELECT
                 COUNT(*) AS pendaftaran,
                 SUM(status = 'Menunggu') AS menunggu,
@@ -156,9 +166,11 @@ router.get('/funnel', async (req, res) => {
             FROM pendaftaran
         `);
 
-        const data = results[0];
+        const visitorData = visitorResults[0];
+        const data = registrationResults[0];
 
         res.json({
+            pengunjung: Number(visitorData.pengunjung || 0),
             pendaftaran: Number(data.pendaftaran || 0),
             menunggu: Number(data.menunggu || 0),
             diterima: Number(data.diterima || 0),
