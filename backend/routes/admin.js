@@ -96,32 +96,38 @@ router.get('/dashboard/stats', async (req, res) => {
 
 router.get('/dashboard/funnel', async (req, res) => {
     try {
+        // Menghitung pengunjung unik Website 2
+        const [visitorResults] = await db.promise().query(`
+            SELECT COUNT(DISTINCT session_id) AS pengunjung
+            FROM analytics_events
+            WHERE event_name = 'page_view'
+              AND source = 'Website PPDB SMPIT Nururrahman'
+              AND session_id IS NOT NULL
+        `);
+
+        // Menghitung statistik pendaftaran
         const [results] = await db.promise().query(`
             SELECT
                 COUNT(*) AS pendaftaran,
-
                 SUM(CASE
                     WHEN status = 'Menunggu' THEN 1
                     ELSE 0
                 END) AS menunggu,
-
                 SUM(CASE
                     WHEN status = 'Diterima' THEN 1
                     ELSE 0
                 END) AS diterima,
-
                 SUM(CASE
                     WHEN status = 'Ditolak' THEN 1
                     ELSE 0
                 END) AS ditolak
-
             FROM pendaftaran
         `);
 
         const data = results[0];
 
         res.json({
-            pengunjung: 0,
+            pengunjung: Number(visitorResults[0].pengunjung || 0),
             pendaftaran: Number(data.pendaftaran || 0),
             menunggu: Number(data.menunggu || 0),
             diterima: Number(data.diterima || 0),
