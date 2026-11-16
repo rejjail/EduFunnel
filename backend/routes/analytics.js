@@ -147,16 +147,26 @@ router.get('/channels', async (req, res) => {
 
 router.get('/funnel', async (req, res) => {
     try {
-        // Menghitung jumlah pengunjung unik dari Website 2
-        const [visitorResults] = await db.promise().query(`
-            SELECT COUNT(DISTINCT session_id) AS pengunjung
+        // Mengambil jumlah aktivitas dari Website 2
+        const [eventResults] = await db.promise().query(`
+            SELECT
+                COUNT(CASE
+                    WHEN event_name = 'page_view' THEN 1
+                END) AS pengunjung,
+
+                COUNT(CASE
+                    WHEN event_name = 'register' THEN 1
+                END) AS registrasi_akun,
+
+                COUNT(CASE
+                    WHEN event_name = 'application_submit' THEN 1
+                END) AS pengiriman_formulir
+
             FROM analytics_events
-            WHERE event_name = 'page_view'
-              AND source = 'Website PPDB SMPIT Nururrahman'
-              AND session_id IS NOT NULL
+            WHERE source = 'Website PPDB SMPIT Nururrahman'
         `);
 
-        // Menghitung data pendaftaran
+        // Mengambil statistik status pendaftaran
         const [registrationResults] = await db.promise().query(`
             SELECT
                 COUNT(*) AS pendaftaran,
@@ -166,11 +176,14 @@ router.get('/funnel', async (req, res) => {
             FROM pendaftaran
         `);
 
-        const visitorData = visitorResults[0];
+        const events = eventResults[0];
         const data = registrationResults[0];
 
         res.json({
-            pengunjung: Number(visitorData.pengunjung || 0),
+            pengunjung: Number(events.pengunjung || 0),
+            registrasi_akun: Number(events.registrasi_akun || 0),
+            pengiriman_formulir: Number(events.pengiriman_formulir || 0),
+
             pendaftaran: Number(data.pendaftaran || 0),
             menunggu: Number(data.menunggu || 0),
             diterima: Number(data.diterima || 0),
