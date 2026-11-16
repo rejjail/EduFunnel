@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 
@@ -5,15 +6,76 @@ const db = require('../config/database');
 const { verifyToken } = require('../middleware/authmiddleware');
 
 // ========================================
-// MIDDLEWARE
-// Semua endpoint wajib login.
-// User dan admin boleh membaca statistik.
+// 1. TRACKING AKTIVITAS WEBSITE 2
+// Endpoint publik, tidak membutuhkan login
+// ========================================
+
+router.post('/track', async (req, res) => {
+    const {
+        event_name,
+        source,
+        session_id,
+        page_path,
+        referrer
+    } = req.body;
+
+    const allowedEvents = [
+        'page_view',
+        'register',
+        'login',
+        'application_submit',
+        're_registration'
+    ];
+
+    if (!allowedEvents.includes(event_name)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Jenis aktivitas tidak valid.'
+        });
+    }
+
+    try {
+        await db.promise().query(
+            `INSERT INTO analytics_events (
+                event_name,
+                source,
+                session_id,
+                page_path,
+                referrer
+            ) VALUES (?, ?, ?, ?, ?)`,
+            [
+                event_name,
+                String(source || 'Website PPDB SMPIT Nururrahman').slice(0, 100),
+                session_id ? String(session_id).slice(0, 100) : null,
+                page_path ? String(page_path).slice(0, 255) : null,
+                referrer ? String(referrer).slice(0, 500) : null
+            ]
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: 'Aktivitas berhasil dicatat.'
+        });
+
+    } catch (error) {
+        console.error('ERROR TRACKING:', error.message);
+
+        return res.status(500).json({
+            success: false,
+            message: 'Gagal mencatat aktivitas.'
+        });
+    }
+});
+
+// ========================================
+// 2. MIDDLEWARE STATISTIK
+// Endpoint di bawah ini wajib login
 // ========================================
 
 router.use(verifyToken);
 
 // ========================================
-// 1. OVERVIEW STATISTICS
+// 3. OVERVIEW STATISTICS
 // ========================================
 
 router.get('/stats', async (req, res) => {
@@ -46,7 +108,7 @@ router.get('/stats', async (req, res) => {
 });
 
 // ========================================
-// 2. CHANNEL ANALYSIS
+// 4. CHANNEL ANALYSIS
 // ========================================
 
 router.get('/channels', async (req, res) => {
@@ -80,7 +142,7 @@ router.get('/channels', async (req, res) => {
 });
 
 // ========================================
-// 3. FUNNEL DEPTH
+// 5. FUNNEL DEPTH
 // ========================================
 
 router.get('/funnel', async (req, res) => {
