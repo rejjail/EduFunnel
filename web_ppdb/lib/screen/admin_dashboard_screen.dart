@@ -235,6 +235,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return toInt(funnel['pengunjung']);
   }
 
+  int get totalRegistrasiAkun {
+    return toInt(funnel['registrasi_akun']);
+  }
+
+  int get totalPengirimanFormulir {
+    return toInt(funnel['pengiriman_formulir']);
+  }
+
   Widget buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -510,10 +518,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         'icon': Icons.visibility_outlined,
       },
       {
-        'title': 'Pendaftaran',
-        'value': totalPendaftar,
+        'title': 'Registrasi Akun',
+        'value': totalRegistrasiAkun,
+        'color': Colors.purple,
+        'icon': Icons.person_add_alt_1,
+      },
+      {
+        'title': 'Pengiriman Formulir',
+        'value': totalPengirimanFormulir,
         'color': Colors.orange,
-        'icon': Icons.app_registration,
+        'icon': Icons.assignment_turned_in_outlined,
       },
       {
         'title': 'Menunggu',
@@ -553,12 +567,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           final color = stage['color'] as Color;
           final value = stage['value'] as int;
 
-          final denominator = totalPendaftar > 0 ? totalPendaftar : 1;
-
           final progress =
-              stage['title'] == 'Pengunjung'
-                  ? 0.0
-                  : (value / denominator).clamp(0.0, 1.0);
+              totalPengunjung > 0
+                  ? (value / totalPengunjung).clamp(0.0, 1.0)
+                  : 0.0;
 
           return Container(
             margin: const EdgeInsets.only(bottom: 15),
@@ -584,9 +596,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ),
                     ),
                     Text(
-                      stage['title'] == 'Pengunjung' && totalPengunjung == 0
-                          ? 'Belum tersedia'
-                          : value.toString(),
+                      value.toString(),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
@@ -609,13 +619,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           );
         }),
-
-        const SizedBox(height: 10),
-        const Text(
-          '* Jumlah pengunjung belum tersedia jika website belum '
-          'menggunakan sistem pencatatan kunjungan.',
-          style: TextStyle(color: Colors.grey, fontSize: 12),
-        ),
       ],
     );
   }
